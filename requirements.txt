@@ -1,0 +1,6 @@
+# Recomendado: Python 3.11 o 3.12 de 64 bits
+opencv-python>=4.9,<5
+mediapipe==0.10.21
+numpy>=1.26,<2
+scikit-learn>=1.4,<2
+pyttsx3>=2.90

@@ -1,0 +1,237 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HandSafe AI</title>
+<link rel="stylesheet" href="/static/styles.css">
+<style>
+.alphabet-card {
+    margin-top: 22px;
+    padding: 24px;
+    border: 1px solid rgba(120,130,150,.25);
+    border-radius: 16px;
+    background: var(--card, #fff);
+}
+.alphabet-result {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-top: 18px;
+}
+.alphabet-letter {
+    width: 100px;
+    height: 100px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: #e8f3ff;
+    color: #1768b0;
+    font-size: 56px;
+    font-weight: 800;
+}
+.alphabet-info { flex: 1; }
+.alphabet-info p { margin: 5px 0; }
+.alphabet-bar {
+    height: 9px;
+    margin-top: 10px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #e5e7eb;
+}
+.alphabet-bar i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #249b68;
+    transition: width .2s;
+}
+.alphabet-note {
+    margin-top: 14px;
+    color: #777;
+    font-size: 12px;
+}
+@media(max-width:600px) {
+    .alphabet-result { gap: 12px; }
+    .alphabet-letter { width: 76px; height: 76px; font-size: 42px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header>
+    <div class="brand">
+        <div class="mark">H</div>
+        <div>
+            <h1>HandSafe <span>AI</span></h1>
+            <p>Reconocimiento inteligente de gestos y señas</p>
+        </div>
+    </div>
+    <div class="live"><i></i><span id="connection">Sistema local</span></div>
+</header>
+
+<main>
+<section class="hero">
+    <div>
+        <p class="eyebrow">PANEL DE CONTROL</p>
+        <h2>Reconocimiento de manos</h2>
+        <p class="muted">Detecta, clasifica y comunica gestos en tiempo real.</p>
+    </div>
+    <div class="status" id="status">CÁMARA DETENIDA</div>
+</section>
+
+<section class="layout">
+    <div class="video-card">
+        <div class="card-head">
+            <div>
+                <h3>Vista de cámara</h3>
+                <p>Procesamiento local con OpenCV y MediaPipe</p>
+            </div>
+            <span class="camera-tag" id="cameraTag">Sin cámara</span>
+        </div>
+
+        <div class="video-wrap">
+            <img id="video" alt="Transmisión de cámara">
+            <div class="placeholder" id="placeholder">
+                <div class="camera-icon">◎</div>
+                <b>Vista previa no disponible</b>
+                <span>Busca una cámara e inicia el reconocimiento</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="select-wrap">
+                <label for="cameraSelect">DISPOSITIVO</label>
+                <select id="cameraSelect">
+                    <option value="">Presiona buscar cámaras</option>
+                </select>
+            </div>
+            <button class="btn secondary" id="scanBtn">↻ Buscar</button>
+            <button class="btn primary" id="startBtn">▶ Iniciar cámara</button>
+            <button class="btn stop" id="stopBtn" disabled>■ Detener</button>
+        </div>
+    </div>
+
+    <aside class="side">
+        <div class="result-card">
+            <div class="card-head">
+                <div>
+                    <h3>Gesto detectado</h3>
+                    <p>Resultado del análisis</p>
+                </div>
+                <span class="pulse"></span>
+            </div>
+
+            <div class="gesture" id="gesture">Esperando...</div>
+            <div class="category" id="category">SIN DETECCIÓN</div>
+            <p class="description" id="description">
+                Coloca una mano frente a la cámara.
+            </p>
+
+            <div class="confidence">
+                <div>
+                    <span>Confianza estimada</span>
+                    <b id="confidence">0%</b>
+                </div>
+                <div class="bar"><i id="confidenceBar"></i></div>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <div class="card-head">
+                <div>
+                    <h3>Configuración</h3>
+                    <p>Preferencias de reconocimiento</p>
+                </div>
+            </div>
+
+            <label class="toggle-row">
+                <span>
+                    <b>Asistente de voz</b>
+                    <small>Pronunciar el gesto detectado</small>
+                </span>
+                <input type="checkbox" id="voiceToggle" checked>
+                <i></i>
+            </label>
+
+            <div class="metric">
+                <span>Detecciones en sesión</span>
+                <b id="detections">0</b>
+            </div>
+        </div>
+    </aside>
+</section>
+
+<section class="alphabet-card">
+    <div class="card-head">
+        <div>
+            <h3>Reconocimiento del alfabeto LSN</h3>
+            <p>Clasificación experimental de configuraciones de las manos</p>
+        </div>
+        <span class="camera-tag" id="alphabetStatus">Modelo cargado</span>
+    </div>
+
+    <div class="alphabet-result">
+        <div class="alphabet-letter" id="alphabetLetter">—</div>
+        <div class="alphabet-info">
+            <p><b id="alphabetDescription">Esperando una seña...</b></p>
+            <p>
+                Puntuación del modelo:
+                <b id="alphabetConfidence">0%</b>
+            </p>
+            <div class="alphabet-bar">
+                <i id="alphabetConfidenceBar"></i>
+            </div>
+        </div>
+    </div>
+
+    <p class="alphabet-note">
+        Modelo experimental. La puntuación no representa una precisión
+        validada. Las señas dinámicas requieren reconocimiento de movimiento.
+    </p>
+</section>
+
+<section class="history-card">
+    <div class="card-head">
+        <div>
+            <h3>Historial reciente</h3>
+            <p>Últimos eventos guardados localmente</p>
+        </div>
+        <button class="text-btn" id="refreshHistory">Actualizar ↻</button>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha y hora</th>
+                    <th>Gesto</th>
+                    <th>Categoría</th>
+                    <th>Confianza</th>
+                </tr>
+            </thead>
+            <tbody id="history">
+                <tr>
+                    <td colspan="4" class="empty">
+                        Todavía no hay detecciones registradas.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+</main>
+
+<footer>
+    HANDSAFE AI <span>·</span> Procesamiento local ·
+    No se almacenan imágenes ni videos
+</footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
